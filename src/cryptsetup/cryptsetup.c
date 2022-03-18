@@ -1818,6 +1818,15 @@ static int run(int argc, char *argv[]) {
                                         return log_error_errno(r, "Failed to set LUKS data device %s: %m", source);
                         }
 
+                        if (!key_file && !key_data) {
+                                log_info("Going to activate volume %s using kdump LUKS master key", volume);
+                                r = crypt_activate_by_master_key_in_kdump_kernel(cd, volume, flags|CRYPT_REUSE_KUDMP_KERNEL_MASTER_KEY);
+                                if (r >= 0) {
+                                        log_info("Volume %s activated with kdump LUKS master key %i.", volume, r);
+                                        return 0;
+                                }
+                        }
+
                         /* Tokens are available in LUKS2 only, but it is ok to call (and fail) with LUKS1. */
                         if (!key_file && !key_data) {
                                 r = crypt_activate_by_token(cd, volume, CRYPT_ANY_TOKEN, NULL, flags);
